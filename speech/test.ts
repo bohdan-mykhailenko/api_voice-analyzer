@@ -1,8 +1,49 @@
-import { google } from "@google-cloud/speech/build/protos/protos";
+import { google } from "@google-cloud/speech/build/protos/protos.js";
 
-import fs from "fs";
-import path from "path";
-import client from "./speechConfig";
+import fs from "node:fs";
+import path from "node:path";
+import client from "./speechConfig.ts";
+
+
+export async function transcribeAudioLocal(filePath: string) {
+  const file = fs.readFileSync(filePath);
+  const audioBytes = file.toString("base64");
+
+  const audio = {
+    content: audioBytes,
+  };
+
+  // console.log("Transcribing audio...", audioBytes);
+
+  const config = {
+    encoding: 1,
+    // sampleRateHertz: 16000,
+    languageCode: "en-US",
+  };
+
+  const request = {
+    audio: audio,
+    config: config,
+  };
+  try {
+    const [{ results: recognitionResults }] = await client.recognize(request);
+
+    if (recognitionResults) {
+      const transcription = recognitionResults
+        .map((result) => result.alternatives![0].transcript)
+        .join("\n");
+
+      console.log(`Transcription: ${transcription}`);
+      return transcription;
+    }
+  } catch (error: any) {
+    throw new Error(`CANT TRANSCRIBE AUDIO: ${error.message}`);
+  }
+}
+
+// await transcribeAudioLocal("./audio_2024-09-24_22-08-02.wav");
+
+// console.log(fs.existsSync("/mnt/d/Downloads/music.mp3"));
 
 export async function transcribeAudio(audioBytes: string) {
   const audio = {
@@ -32,8 +73,8 @@ export async function transcribeAudio(audioBytes: string) {
 
     if (recognitionResults) {
       const transcription = recognitionResults
-        .map((result) => result.alternatives![0].transcript)
-        .join("\n");
+          .map((result) => result.alternatives![0].transcript)
+          .join("\n");
 
       console.log(`Transcription: ${transcription}`);
       return transcription;
@@ -42,43 +83,3 @@ export async function transcribeAudio(audioBytes: string) {
     throw new Error(`CANT TRANSCRIBE AUDIO: ${error.message}`);
   }
 }
-
-export async function transcribeAudioLocal(filePath: string) {
-  const file = fs.readFileSync(filePath);
-  const audioBytes = file.toString("base64");
-
-  const audio = {
-    content: audioBytes,
-  };
-
-  console.log("Transcribing audio...", audioBytes);
-
-  const config = {
-    encoding: 1,
-    // sampleRateHertz: 16000,
-    languageCode: "en-US",
-  };
-
-  const request = {
-    audio: audio,
-    config: config,
-  };
-  try {
-    const [{ results: recognitionResults }] = await client.recognize(request);
-
-    if (recognitionResults) {
-      const transcription = recognitionResults
-        .map((result) => result.alternatives![0].transcript)
-        .join("\n");
-
-      console.log(`Transcription: ${transcription}`);
-      return transcription;
-    }
-  } catch (error: any) {
-    throw new Error(`CANT TRANSCRIBE AUDIO: ${error.message}`);
-  }
-}
-
-//await transcribeAudioLocal("./speech/audio_2024-09-24_22-08-02.wav");
-
-console.log(fs.existsSync("/mnt/d/Downloads/music.mp3"));

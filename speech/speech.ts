@@ -1,27 +1,12 @@
 import axios from "axios";
 import { api } from "encore.dev/api";
-import { transcribeAudio } from "./transcribe";
+import { transcribeAudio } from "./test.ts";
 import * as fs from "fs";
 import path from "path";
+import {convertToLinuxPath} from "./utils.ts";
 
 interface Response {
   message: string;
-}
-
-function isLocalNetworkUrl(url: string): boolean {
-  const localIpPattern = /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}/;
-
-  return localIpPattern.test(url);
-}
-
-function convertToLinuxPath(windowsPath: string): string {
-  // Replace the drive letter (e.g., D:) with `/mnt/d/`
-  const linuxPath = windowsPath.replace(/^[a-zA-Z]:/, (match) => {
-    return `/mnt/${match[0].toLowerCase()}`;
-  });
-
-  // Replace backslashes with forward slashes
-  return linuxPath.replace(/\\/g, "/");
 }
 
 export const post = api(
